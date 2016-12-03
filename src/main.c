@@ -14,17 +14,19 @@ void main (void)
 {
     /* Set pin 3 of PORTA for output */
     DDRA |= _BV(DDA3);
-    /* Init error console as stderr in UART3, init CLI in UART0, init lcd and print user code info */
+    /* Init error console as stderr in UART3, init CLI in UART0, init lcd */
     uart3_initialize();
     uart0_initialize();
     lcd_init();
     lcd_clrscr();
     stderr = &uart3_out;
     stdout = stdin = &uart0_io;
+    /* End UART3 init, UART0 init, lcd init */
+    /* Print user code version info */
     fprintf_P(stderr, PSTR(VER_FW "\n"));
     fprintf_P(stderr, PSTR(VER_LIBC " " VER_GCC "\n"));
-    /* End UART3 init, UART0 init, lcd init and info print */
-    /* Print STUD_NAME to CLI and display on LCD row 1 */
+    /* End user code version info print */
+    /* Print STUD_NAME to CLI and display STUD_NAME on LCD row 1 */
     fprintf_P(stdout, PSTR(STUD_NAME "\n"));
     lcd_puts_P(PSTR(STUD_NAME));
     /* Print ascii tables to CLI */
@@ -47,6 +49,7 @@ void main (void)
         fprintf_P(stdout, PSTR(GET_LETTER));
         fscanf(stdin, "%c", &inBuf);
         fprintf(stdout, "%c\n", inBuf);
+        lcd_clr(0x40, 16);
         lcd_goto(0x40);
 
         for (int i = 0; i < 6; i++) {
@@ -55,11 +58,6 @@ void main (void)
                 lcd_puts_P((PGM_P)pgm_read_word(&(month_table[i])));
                 lcd_putc(' ');
             }
-        }
-
-        /* clear LCD row 2 */
-        for (int i = 0; i < 16; i++) {
-            lcd_putc(' ');
         }
 
         /* Set pin 3 low to turn LED off */
