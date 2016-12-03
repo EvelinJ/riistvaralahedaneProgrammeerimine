@@ -14,7 +14,7 @@ int print_ascii_tbl (FILE *stream)
 
 int print_for_human (FILE *stream, const unsigned char *array, const size_t len)
 {
-    for (unsigned int i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         if (array[i] >= ' ' && array[i] <= '~') {
             if (!fprintf(stream, "%c", array[i])) {
                 return 0;
