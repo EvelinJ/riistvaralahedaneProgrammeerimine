@@ -8,6 +8,7 @@
 
 #define STUD_NAME "Evelin Jõgi"
 #define GET_LETTER "Enter Month name first letter >"
+#define LBL_UPTIME "Uptime"
 
 const char month_1[] PROGMEM = "January";
 const char month_2[] PROGMEM = "February";
