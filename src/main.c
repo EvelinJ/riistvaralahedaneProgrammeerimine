@@ -1,20 +1,26 @@
 #include <stdio.h>
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
-#include <string.h>
 #include <avr/io.h>
 #include <util/atomic.h>
 #include <util/delay.h>
 #include "hmi_msg.h"
 #include "uart_wrapper.h"
-#include "print_helper.h"
+#include "cli_microrl.h"
 #include "../lib/hd44780_111/hd44780.h"
 #include "../lib/andygock_avr-uart/uart.h"
+#include "../lib/helius_microrl/microrl.h"
 
 #define BAUD 9600
 
+
 /* Global seconds counter */
 volatile uint32_t time;
+
+
+/* Create microrl object and pointer on it */
+microrl_t rl;
+microrl_t *prl = &rl;
 
 
 static inline void init_system_clock(void)
@@ -54,38 +60,15 @@ static inline void print_startup_info(void)
     /* Print STUD_NAME to CLI and display STUD_NAME on LCD row 1 */
     fprintf_P(stdout, PSTR(STUD_NAME "\n"));
     lcd_puts_P(PSTR(STUD_NAME));
-    /* Print ascii tables to CLI */
-    print_ascii_tbl(stdout);
-    unsigned char ascii[128];
-
-    for (unsigned char i = 0; i < sizeof(ascii); i++) {
-        ascii[i] = i;
-    }
-
-    print_for_human(stdout, ascii, sizeof(ascii));
-    fprintf_P(stdout, PSTR(GET_LETTER));
 }
 
 
-static inline void find_month(void)
+static inline void init_cli(void)
 {
-    /* Ask user input, try to find month beginning with letter from lookup list */
-    /* Print months names to CLI and display on LCD row 2 */
-    char inBuf;
-    fscanf(stdin, "%c", &inBuf);
-    fprintf(stdout, "%c\n", inBuf);
-    lcd_clr(LCD_ROW_2_START, LCD_VISIBLE_COLS);
-    lcd_goto(LCD_ROW_2_START);
-
-    for (int i = 0; i < 6; i++) {
-        if (!strncmp_P(&inBuf, (PGM_P)pgm_read_word(&(month_table[i])), 1)) {
-            fprintf_P(stdout, PSTR("%S\n"), (PGM_P)pgm_read_word(&(month_table[i])));
-            lcd_puts_P((PGM_P)pgm_read_word(&(month_table[i])));
-            lcd_putc(' ');
-        }
-    }
-
-    fprintf_P(stdout, PSTR(GET_LETTER));
+    /* Init microrl */
+    microrl_init(prl, cli_print);
+    /* Set callback for execute */
+    microrl_set_execute_callback(prl, cli_execute);
 }
 
 
@@ -106,17 +89,16 @@ static inline void heartbeat(void)
 }
 
 
-void main (void)
+void main(void)
 {
     init_hw();
     print_startup_info();
+    init_cli();
 
     while (1) {
         heartbeat();
-
-        if (uart0_available()) {
-            find_month();
-        }
+        /* CLI commands are handled in cli_execute() */
+        microrl_insert_char(prl, cli_get_char());
     }
 }
 

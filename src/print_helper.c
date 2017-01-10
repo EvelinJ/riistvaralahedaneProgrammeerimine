@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "print_helper.h"
 
-int print_ascii_tbl (FILE *stream)
+int print_ascii_tbl(FILE *stream)
 {
     for (char c = ' '; c <= '~'; c++) {
         if (!fprintf(stream, "%c ", c)) {
@@ -12,7 +12,8 @@ int print_ascii_tbl (FILE *stream)
     return fprintf(stream, "\n");
 }
 
-int print_for_human (FILE *stream, const unsigned char *array, const size_t len)
+
+int print_for_human(FILE *stream, const unsigned char *array, const size_t len)
 {
     for (size_t i = 0; i < len; i++) {
         if (array[i] >= ' ' && array[i] <= '~') {
